@@ -15,6 +15,6 @@
 				rojo.matar();
 				break;
 */
-enum Botones {NADA, W, S, A, D, Q, P, M, K, SPACE, DOWN, UP};
+enum Botones {NADA, W, S, A, D, Q, P, M, K, SPACE, DOWN, UP, ESC};
 
 #endif

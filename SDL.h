@@ -135,6 +135,8 @@ class SDL {
 				return DOWN;
 			} else if (keys[SDL_SCANCODE_UP]){
 				return UP;
+			} else if (keys[SDL_SCANCODE_ESCAPE]){
+				return ESC;
 			}
 	        return NADA;
 		}

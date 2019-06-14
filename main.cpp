@@ -45,6 +45,7 @@ void setColor(int);
 void ocultarCursor();
 void mostrarInicio(SDL);
 void mostrarInstrucciones(SDL);
+void mostrarRecords(SDL);
 void iniciarJuego(SDL);
 void llenarPreguntas(list<Pregunta>&);
 void llenarRecords(list<Record>&);
@@ -53,11 +54,12 @@ bool existePregunta(Pregunta, list<Pregunta>);
 void eliminar(list<Pregunta>&, Pregunta);
 void guardarRecord(list<Record> &, auto);
 void registrarRecord(list<Record> &, Record&);
+void imprimirRecords();
 
 int main(int argc, char *args[]) {
 	SDL sdl;
-	//mostrarInicio(sdl);//s
-	iniciarJuego(sdl);
+	mostrarInicio(sdl);//s
+	//iniciarJuego(sdl);
     return 0;
 }
 
@@ -181,11 +183,13 @@ void mostrarInicio(SDL sdl){
 				}
 				break;
 			case SPACE:
-				ciclar = false;
+				//ciclar = false;
 				if (opcion == 1){
 					iniciarJuego(sdl);
 				} else if (opcion == 2){
 					mostrarInstrucciones(sdl);
+				} else if (opcion == 3){
+					mostrarRecords(sdl);
 				}
 				break;
 		}
@@ -222,16 +226,49 @@ bool existePregunta(Pregunta p, list<Pregunta> preguntas){
 
 //Mostrar la pantalla de instrucciones
 void mostrarInstrucciones(SDL sdl){
-	Imagen *fondo1 = sdl.loadImg("img/fondo1.png");
+	Imagen *fondo1 = sdl.loadImg("img/instrucciones.png");
 	
-	while (true){
+	bool ciclar = true;
+	
+	while (ciclar){
     	if (sdl.clickeoSalir()){
     		break;
 		}
 		
 		switch (sdl.botonClickeado()){
-			case SPACE:
-				
+			case ESC:
+				ciclar = false;
+				break;
+		}
+		
+        sdl.limpiar();
+        sdl.setColorFondo(0, 0, 0);
+        
+        sdl.dibujar(fondo1);
+        
+        sdl.render();
+        sdl.esperar(7);
+    }
+    
+    sdl.destruir(fondo1);
+}
+
+//Mostrar la pantalla de records
+void mostrarRecords(SDL sdl){
+	Imagen *fondo1 = sdl.loadImg("img/records.png");
+	
+	bool ciclar = true;//Variable para imprimir la pantalla cuando esté activada.
+	
+	imprimirRecords();//Mostrar records por consola.
+	
+	while (ciclar){
+    	if (sdl.clickeoSalir()){
+    		break;
+		}
+		
+		switch (sdl.botonClickeado()){
+			case ESC:
+				ciclar = false;
 				break;
 		}
 		
@@ -257,34 +294,35 @@ void llenarPreguntas(list<Pregunta> &preguntas){
 
 void llenarRecords(list<Record> &records){
 	ifstream origen("records.txt", ios::binary);
-	
 	Record p;
 	while (origen.read((char*) &p, sizeof(Record))){
-        cout << "Leido: (" << p.time << ")" << p.nombre << endl;
         records.push_back(p);
     }
-	
-	
-	//origen.read((char *) &records, sizeof(list<Record>));
 	origen.close();
 }
 
 void registrarRecord(list<Record> &records, Record &r){
 	records.push_back(r);
-	/*ofstream destino("records.txt", ios::binary);
-	
-	destino.write((char *) &records, sizeof(list<Record>));*/
-	
-	//ifstream infile;
 	ofstream infile("records.txt", ios::binary);
 	for(auto iter = records.begin(); iter!=records.end(); iter++){
 	    Record rec = *iter;
 	    infile.write((char*) &rec, sizeof(Record));
 	}
-	
 	infile.close();
-	
-	//destino.close();
+}
+
+void imprimirRecords(){
+	list<Record> records;
+	llenarRecords(records);
+	setColor(VERDE);
+	cout << "Nombre\t\t\tTiempo" << endl << endl;
+	for(list <Record> :: iterator it = records.begin(); it != records.end(); ++it){
+		Record i = *it;
+		setColor(AMARILLOF);
+		cout << i.nombre << "\t\t";
+		setColor(AMARILLO);
+		cout << i.time << " segundos." << endl;
+	}
 }
 
 //Función para eliminar una pregunta de la lista de preguntas.

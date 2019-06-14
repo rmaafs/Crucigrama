@@ -9,6 +9,7 @@ typedef SDL_Texture Imagen;
 
 void mostrarInicio(SDL);
 void mostrarInstrucciones(SDL);
+void iniciarJuego(SDL);
 
 int main(int argc, char *args[]) {
 	SDL sdl;
@@ -16,7 +17,33 @@ int main(int argc, char *args[]) {
     return 0;
 }
 
+//Mostrar la pantalla de juego
+void iniciarJuego(SDL sdl){
+	Imagen *fondo1 = sdl.loadImg("img/fondo1.png");
 	
+	while (true){
+    	if (sdl.clickeoSalir()){
+    		break;
+		}
+		
+		switch (sdl.botonClickeado()){
+			case SPACE:
+				
+				break;
+		}
+		
+        sdl.limpiar();
+        sdl.setColorFondo(0, 0, 0);
+        
+        sdl.dibujar(fondo1);
+        
+        sdl.render();
+        sdl.esperar(7);
+    }
+    
+    sdl.destruir(fondo1);
+}
+
 //Mostrar la pantalla de inicio
 void mostrarInicio(SDL sdl){
 	Imagen *fondo1 = sdl.loadImg("img/fondo1.png");

@@ -1,25 +1,53 @@
 #include <iostream>
 #include <list>
+#include <windows.h>
 #include "Botones.h"
 #include "SDL.h"
+#define NEGRO 0
+#define AZULFF 1
+#define VERDEF 2
+#define AQUAF 3
+#define ROJOF 4
+#define MORADO 5
+#define AMARILLOF 6
+#define GRIS 7
+#define GRISF 8
+#define AZULF 9
+#define VERDE 10
+#define AQUA 11
+#define ROJO 12
+#define ROSA 13
+#define AMARILLO 14
+#define BLANCO 15
 
 using namespace std;
 //Convertir el tipo de clase SDL_Texture para poder interpretarlo como "Imagen"
 typedef SDL_Texture Imagen;
 
+struct Pregunta {
+	int num;
+	string respuesta;
+};
+
+void gotoxy(int, int);
+void gotoxy(int, int, string);
+void setColor(int);
+void ocultarCursor();
 void mostrarInicio(SDL);
 void mostrarInstrucciones(SDL);
 void iniciarJuego(SDL);
+Pregunta preguntar();
 
 int main(int argc, char *args[]) {
 	SDL sdl;
-	mostrarInicio(sdl);//s
+	//mostrarInicio(sdl);//s
+	iniciarJuego(sdl);
     return 0;
 }
 
 //Mostrar la pantalla de juego
 void iniciarJuego(SDL sdl){
-	Imagen *fondo1 = sdl.loadImg("img/fondo1.png");
+	Imagen *fondo1 = sdl.loadImg("img/crucigrama.png");
 	
 	while (true){
     	if (sdl.clickeoSalir()){
@@ -39,9 +67,34 @@ void iniciarJuego(SDL sdl){
         
         sdl.render();
         sdl.esperar(7);
+        
+        Pregunta p = preguntar();
     }
     
     sdl.destruir(fondo1);
+}
+
+/*
+	Preguntar al usuario por consola el número que quiere responder.
+	Se retornará un struct con el número y la respuesta que tecleó.
+*/
+Pregunta preguntar(){
+	system("cls");
+	fflush(stdin);
+	int num;
+	string respuesta;
+	setColor(AMARILLOF);
+	cout << "Por favor, ingresa el numero que quieres llenar: ";
+	setColor(AMARILLO);
+	cin >> num;
+	setColor(VERDEF);
+	cout << endl << endl << "Ingresa la respuesta de la pregunta " << num << endl;
+	setColor(VERDE);
+	cin >> respuesta;
+	Pregunta p;
+	p.num = num;
+	p.respuesta = respuesta;
+	return p;
 }
 
 //Mostrar la pantalla de inicio
@@ -78,7 +131,9 @@ void mostrarInicio(SDL sdl){
 				break;
 			case SPACE:
 				ciclar = false;
-				if (opcion == 2){
+				if (opcion == 1){
+					iniciarJuego(sdl);
+				} else if (opcion == 2){
 					mostrarInstrucciones(sdl);
 				}
 				break;
@@ -129,4 +184,35 @@ void mostrarInstrucciones(SDL sdl){
     }
     
     sdl.destruir(fondo1);
+}
+
+//En la consola, Poner el puntero en las coordenadas...
+void gotoxy(int x,int y){
+    HANDLE hcon;  
+    hcon = GetStdHandle(STD_OUTPUT_HANDLE);  
+    COORD dwPos;  
+    dwPos.X = x;  
+    dwPos.Y= y;  
+    SetConsoleCursorPosition(hcon,dwPos);  
+}
+
+//En la consola, Poner el puntero en las coordenadas e imprimir texto.
+void gotoxy(int x,int y, string i){
+    gotoxy(x, y);
+    cout << i;
+}
+
+//Cambiar el color del texto.
+void setColor(int n){
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), n); 
+}
+
+//Ocultar el cursor.
+void ocultarCursor(){
+	HANDLE hCon;
+	hCon = GetStdHandle(STD_OUTPUT_HANDLE);
+	CONSOLE_CURSOR_INFO cci;
+	cci.dwSize = 50;
+	cci.bVisible = FALSE;
+	SetConsoleCursorInfo(hCon, &cci);
 }

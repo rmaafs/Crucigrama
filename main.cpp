@@ -1,5 +1,7 @@
 #include <iostream>
 #include <list>
+#include <chrono>
+#include <ctime>
 #include <windows.h>
 #include "Botones.h"
 #include "SDL.h"
@@ -29,6 +31,11 @@ struct Pregunta {
 	string respuesta;
 };
 
+struct Record {
+	string nombre;
+	int time;
+};
+
 void gotoxy(int, int);
 void gotoxy(int, int, string);
 void setColor(int);
@@ -40,6 +47,7 @@ void llenarPreguntas(list<Pregunta>&);
 Pregunta preguntar();
 bool existePregunta(Pregunta, list<Pregunta>);
 void eliminar(list<Pregunta>&, Pregunta);
+void guardarRecord(auto);
 
 int main(int argc, char *args[]) {
 	SDL sdl;
@@ -54,6 +62,8 @@ void iniciarJuego(SDL sdl){
 	Imagen *fondo1 = sdl.loadImg("img/crucigrama.png");
 	
 	llenarPreguntas(preguntas);
+	
+	auto start = std::chrono::system_clock::now();//Empezar a contar el tiempo
 	
 	while (true){
     	if (sdl.clickeoSalir()){
@@ -77,15 +87,41 @@ void iniciarJuego(SDL sdl){
         Pregunta p = preguntar();
         if (existePregunta(p, preguntas)){
         	eliminar(preguntas, p);
+        	if (preguntas.size() == 0) break;
 		} else {
 			
 		}
 		
 		cout << endl << "TOTAL: " << preguntas.size() << endl;
+		
 		system("PAUSE");
     }
     
+    guardarRecord(start);
+    
     sdl.destruir(fondo1);
+}
+
+void guardarRecord(auto start){
+	auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double> elapsed_seconds = end-start;
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    std::cout << endl << "finished computation at " << std::ctime(&end_time)
+              << "elapsed time: " << elapsed_seconds.count() << "s\n";
+              
+    Record r;
+    system("cls");
+    setColor(VERDE);
+    cout << "Felicidades, completaste el Crucigrama en " << (int) elapsed_seconds.count() << " segundos." << endl << endl;
+    setColor(AMARILLOF);
+	cout << "Porfavor, ingresa tu nombre: ";
+	setColor(AMARILLO);
+	cin >> r.nombre;
+	r.time = (int) elapsed_seconds.count();
+	
+	setColor(AQUA);
+	cout << endl << endl << "Registro guardado: " << endl;
+	cout << "Nombre: " << r.nombre << endl << "Tiempo: " << r.time << " segundos.";
 }
 
 /*

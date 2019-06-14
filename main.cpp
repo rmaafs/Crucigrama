@@ -36,7 +36,10 @@ void ocultarCursor();
 void mostrarInicio(SDL);
 void mostrarInstrucciones(SDL);
 void iniciarJuego(SDL);
+void llenarPreguntas(list<Pregunta>&);
 Pregunta preguntar();
+bool existePregunta(Pregunta, list<Pregunta>);
+void eliminar(list<Pregunta>&, Pregunta);
 
 int main(int argc, char *args[]) {
 	SDL sdl;
@@ -47,7 +50,10 @@ int main(int argc, char *args[]) {
 
 //Mostrar la pantalla de juego
 void iniciarJuego(SDL sdl){
+	list<Pregunta> preguntas;
 	Imagen *fondo1 = sdl.loadImg("img/crucigrama.png");
+	
+	llenarPreguntas(preguntas);
 	
 	while (true){
     	if (sdl.clickeoSalir()){
@@ -69,6 +75,14 @@ void iniciarJuego(SDL sdl){
         sdl.esperar(7);
         
         Pregunta p = preguntar();
+        if (existePregunta(p, preguntas)){
+        	eliminar(preguntas, p);
+		} else {
+			
+		}
+		
+		cout << endl << "TOTAL: " << preguntas.size() << endl;
+		system("PAUSE");
     }
     
     sdl.destruir(fondo1);
@@ -91,6 +105,7 @@ Pregunta preguntar(){
 	cout << endl << endl << "Ingresa la respuesta de la pregunta " << num << endl;
 	setColor(VERDE);
 	cin >> respuesta;
+	cout << endl << endl;
 	Pregunta p;
 	p.num = num;
 	p.respuesta = respuesta;
@@ -159,6 +174,16 @@ void mostrarInicio(SDL sdl){
     sdl.destruir(fondo3);
 }
 
+bool existePregunta(Pregunta p, list<Pregunta> preguntas){
+	for(list <Pregunta> :: iterator it = preguntas.begin(); it != preguntas.end(); ++it){
+		Pregunta i = *it;
+		if (i.num == p.num && i.respuesta == p.respuesta){
+			return true;
+		}
+	}
+	return false;
+}
+
 //Mostrar la pantalla de instrucciones
 void mostrarInstrucciones(SDL sdl){
 	Imagen *fondo1 = sdl.loadImg("img/fondo1.png");
@@ -184,6 +209,28 @@ void mostrarInstrucciones(SDL sdl){
     }
     
     sdl.destruir(fondo1);
+}
+
+//Llenar la lista de preguntas con todo lo que tiene el crucigrama.
+void llenarPreguntas(list<Pregunta> &preguntas){
+	Pregunta p;
+	p.num = 1;
+	p.respuesta = "rodrigo";
+	preguntas.push_back(p);
+}
+
+//Función para eliminar una pregunta de la lista de preguntas.
+void eliminar(list<Pregunta> &preguntas, Pregunta p){
+	list <Pregunta> :: iterator it = preguntas.begin();
+	while (it != preguntas.end()){
+		Pregunta i = *it;
+	    if (i.num == p.num && i.respuesta == p.respuesta){
+	        it = preguntas.erase(it);// erase and go to next
+	        cout << endl << "Borrando..." << endl;
+	    } else {
+	        ++it;
+	    }
+	}
 }
 
 //En la consola, Poner el puntero en las coordenadas...

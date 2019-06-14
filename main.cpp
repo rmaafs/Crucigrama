@@ -55,6 +55,8 @@ void eliminar(list<Pregunta>&, Pregunta);
 void guardarRecord(list<Record> &, auto);
 void registrarRecord(list<Record> &, Record&);
 void imprimirRecords();
+int pedirNumero();
+bool isNumber(const string&);
 
 int main(int argc, char *args[]) {
 	ocultarCursor();//Ocultar el cursor que parpadea en consola.
@@ -138,7 +140,7 @@ Pregunta preguntar(){
 	setColor(AMARILLOF);
 	cout << "Por favor, ingresa el numero que quieres llenar: ";
 	setColor(AMARILLO);
-	cin >> num;
+	num = pedirNumero();
 	setColor(VERDEF);
 	cout << endl << endl << "Ingresa la respuesta de la pregunta " << num << endl;
 	setColor(VERDE);
@@ -341,6 +343,31 @@ void eliminar(list<Pregunta> &preguntas, Pregunta p){
 	        ++it;
 	    }
 	}
+}
+
+int pedirNumero(){
+	string s;
+	while (true){
+		cin >> s;
+		if (isNumber(s)){
+			return stoi(s);
+		} else {
+			setColor(ROJO);
+			cout << endl << "Por favor ingresa un numero valido." << endl;
+			setColor(AMARILLO);
+		}
+	}
+}
+
+bool isNumber( const string& s ){
+  bool hitDecimal=0;
+  for(char c : s){
+    if( c=='.' && !hitDecimal ) // 2 '.' in string mean invalid
+      hitDecimal=1; // first hit here, we forgive and skip
+    else if( !isdigit( c ) ) 
+      return 0 ; // not ., not 
+  }
+  return 1 ;
 }
 
 //Cambiar el color del texto.

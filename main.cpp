@@ -3,8 +3,11 @@
 #include <chrono>
 #include <ctime>
 #include <windows.h>
+#include <fstream>
+#include <iostream>
 #include "Botones.h"
 #include "SDL.h"
+
 #define NEGRO 0
 #define AZULFF 1
 #define VERDEF 2
@@ -32,7 +35,7 @@ struct Pregunta {
 };
 
 struct Record {
-	string nombre;
+	char nombre[20];
 	int time;
 };
 
@@ -44,10 +47,12 @@ void mostrarInicio(SDL);
 void mostrarInstrucciones(SDL);
 void iniciarJuego(SDL);
 void llenarPreguntas(list<Pregunta>&);
+void llenarRecords(list<Record>&);
 Pregunta preguntar();
 bool existePregunta(Pregunta, list<Pregunta>);
 void eliminar(list<Pregunta>&, Pregunta);
-void guardarRecord(auto);
+void guardarRecord(list<Record> &, auto);
+void registrarRecord(list<Record> &, Record&);
 
 int main(int argc, char *args[]) {
 	SDL sdl;
@@ -59,9 +64,11 @@ int main(int argc, char *args[]) {
 //Mostrar la pantalla de juego
 void iniciarJuego(SDL sdl){
 	list<Pregunta> preguntas;
+	list<Record> records;
 	Imagen *fondo1 = sdl.loadImg("img/crucigrama.png");
 	
 	llenarPreguntas(preguntas);
+	llenarRecords(records);
 	
 	auto start = std::chrono::system_clock::now();//Empezar a contar el tiempo
 	
@@ -91,23 +98,19 @@ void iniciarJuego(SDL sdl){
 		} else {
 			
 		}
-		
-		cout << endl << "TOTAL: " << preguntas.size() << endl;
-		
+
 		system("PAUSE");
     }
     
-    guardarRecord(start);
+    guardarRecord(records, start);
     
     sdl.destruir(fondo1);
 }
 
-void guardarRecord(auto start){
+void guardarRecord(list<Record> &records, auto start){
 	auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
     std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << endl << "finished computation at " << std::ctime(&end_time)
-              << "elapsed time: " << elapsed_seconds.count() << "s\n";
               
     Record r;
     system("cls");
@@ -118,10 +121,7 @@ void guardarRecord(auto start){
 	setColor(AMARILLO);
 	cin >> r.nombre;
 	r.time = (int) elapsed_seconds.count();
-	
-	setColor(AQUA);
-	cout << endl << endl << "Registro guardado: " << endl;
-	cout << "Nombre: " << r.nombre << endl << "Tiempo: " << r.time << " segundos.";
+	registrarRecord(records, r);
 }
 
 /*
@@ -255,14 +255,45 @@ void llenarPreguntas(list<Pregunta> &preguntas){
 	preguntas.push_back(p);
 }
 
+void llenarRecords(list<Record> &records){
+	ifstream origen("records.txt", ios::binary);
+	
+	Record p;
+	while (origen.read((char*) &p, sizeof(Record))){
+        cout << "Leido: (" << p.time << ")" << p.nombre << endl;
+        records.push_back(p);
+    }
+	
+	
+	//origen.read((char *) &records, sizeof(list<Record>));
+	origen.close();
+}
+
+void registrarRecord(list<Record> &records, Record &r){
+	records.push_back(r);
+	/*ofstream destino("records.txt", ios::binary);
+	
+	destino.write((char *) &records, sizeof(list<Record>));*/
+	
+	//ifstream infile;
+	ofstream infile("records.txt", ios::binary);
+	for(auto iter = records.begin(); iter!=records.end(); iter++){
+	    Record rec = *iter;
+	    infile.write((char*) &rec, sizeof(Record));
+	}
+	
+	infile.close();
+	
+	//destino.close();
+}
+
 //Función para eliminar una pregunta de la lista de preguntas.
 void eliminar(list<Pregunta> &preguntas, Pregunta p){
 	list <Pregunta> :: iterator it = preguntas.begin();
 	while (it != preguntas.end()){
 		Pregunta i = *it;
 	    if (i.num == p.num && i.respuesta == p.respuesta){
-	        it = preguntas.erase(it);// erase and go to next
-	        cout << endl << "Borrando..." << endl;
+	        it = preguntas.erase(it);
 	    } else {
 	        ++it;
 	    }

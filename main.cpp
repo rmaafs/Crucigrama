@@ -124,6 +124,7 @@ void guardarRecord(list<Record> &records, auto start){
 	cin >> r.nombre;
 	r.time = (int) elapsed_seconds.count();
 	registrarRecord(records, r);
+	system("cls");
 }
 
 /*
@@ -315,13 +316,14 @@ void imprimirRecords(){
 	list<Record> records;
 	llenarRecords(records);
 	setColor(VERDE);
-	cout << "Nombre\t\t\tTiempo" << endl << endl;
+	cout << "Nombre\t\tTiempo" << endl << endl;
 	for(list <Record> :: iterator it = records.begin(); it != records.end(); ++it){
 		Record i = *it;
 		setColor(AMARILLOF);
-		cout << i.nombre << "\t\t";
+		cout.width(16);
+		cout << left << i.nombre;
 		setColor(AMARILLO);
-		cout << i.time << " segundos." << endl;
+		cout << i.time << " segundos" << endl;
 	}
 }
 

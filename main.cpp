@@ -57,9 +57,9 @@ void registrarRecord(list<Record> &, Record&);
 void imprimirRecords();
 
 int main(int argc, char *args[]) {
+	ocultarCursor();//Ocultar el cursor que parpadea en consola.
 	SDL sdl;
-	mostrarInicio(sdl);//s
-	//iniciarJuego(sdl);
+	mostrarInicio(sdl);
     return 0;
 }
 
@@ -75,14 +75,8 @@ void iniciarJuego(SDL sdl){
 	auto start = std::chrono::system_clock::now();//Empezar a contar el tiempo
 	
 	while (true){
-    	if (sdl.clickeoSalir()){
-    		break;
-		}
-		
-		switch (sdl.botonClickeado()){
-			case SPACE:
-				
-				break;
+    	if (sdl.clickeoSalir()){//Si el jugador ha precionado la X para cerrar la ventana...
+    		break;//Terminar el ciclo para que no se imrpima.
 		}
 		
         sdl.limpiar();
@@ -98,17 +92,22 @@ void iniciarJuego(SDL sdl){
         	eliminar(preguntas, p);
         	if (preguntas.size() == 0) break;
 		} else {
-			
+			setColor(ROJO);
+			cout << endl << endl << "Respuesta incorrecta." << endl;
 		}
 
 		system("PAUSE");
     }
     
-    guardarRecord(records, start);
+    if (preguntas.size() == 0){
+    	//Como el juego ha terminado porque ha completado todas las preguntas...
+    	guardarRecord(records, start);//Guardar su record.
+	}
     
     sdl.destruir(fondo1);
 }
 
+//Función que le pregunta el nombre al jugador, para guardarlo en el archivo de records.
 void guardarRecord(list<Record> &records, auto start){
 	auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end-start;
@@ -157,9 +156,9 @@ void mostrarInicio(SDL sdl){
 	Imagen *fondo2 = sdl.loadImg("img/fondo2.png");
 	Imagen *fondo3 = sdl.loadImg("img/fondo3.png");
 	
-	bool ciclar = true;
+	bool ciclar = true;//true = Imprimir la pantalla de inicio.
 	
-	int opcion = 1;
+	int opcion = 1;//Opción que tiene seleccionada actualmente.
 	int timerBotones = 0;//Timer para evitar que cuando presionen una tecla, se cambie rápido.
 	
 	bool mostrarJuego = true;
@@ -179,12 +178,12 @@ void mostrarInicio(SDL sdl){
 				}
         	case DOWN:
         		if (timerBotones <= 0){
-        			timerBotones = 50;
+        			timerBotones = 40;
         			if (++opcion > 3) opcion = 1;
 				}
 				break;
 			case SPACE:
-				//ciclar = false;
+				//Si la opción que ha escogido es...
 				if (opcion == 1){
 					iniciarJuego(sdl);
 				} else if (opcion == 2){
@@ -215,6 +214,7 @@ void mostrarInicio(SDL sdl){
     sdl.destruir(fondo3);
 }
 
+//Retornará verdadero si la pregunta existe en la lista de preguntas.
 bool existePregunta(Pregunta p, list<Pregunta> preguntas){
 	for(list <Pregunta> :: iterator it = preguntas.begin(); it != preguntas.end(); ++it){
 		Pregunta i = *it;
@@ -293,6 +293,7 @@ void llenarPreguntas(list<Pregunta> &preguntas){
 	preguntas.push_back(p);
 }
 
+//Función que lee los records del archivo y los manda a un list de Records.
 void llenarRecords(list<Record> &records){
 	ifstream origen("records.txt", ios::binary);
 	Record p;
@@ -302,6 +303,7 @@ void llenarRecords(list<Record> &records){
 	origen.close();
 }
 
+//Función que registra un record al archivo de records.
 void registrarRecord(list<Record> &records, Record &r){
 	records.push_back(r);
 	ofstream infile("records.txt", ios::binary);
@@ -312,6 +314,7 @@ void registrarRecord(list<Record> &records, Record &r){
 	infile.close();
 }
 
+//Imprimir los records en consola.
 void imprimirRecords(){
 	list<Record> records;
 	llenarRecords(records);
@@ -340,28 +343,12 @@ void eliminar(list<Pregunta> &preguntas, Pregunta p){
 	}
 }
 
-//En la consola, Poner el puntero en las coordenadas...
-void gotoxy(int x,int y){
-    HANDLE hcon;  
-    hcon = GetStdHandle(STD_OUTPUT_HANDLE);  
-    COORD dwPos;  
-    dwPos.X = x;  
-    dwPos.Y= y;  
-    SetConsoleCursorPosition(hcon,dwPos);  
-}
-
-//En la consola, Poner el puntero en las coordenadas e imprimir texto.
-void gotoxy(int x,int y, string i){
-    gotoxy(x, y);
-    cout << i;
-}
-
 //Cambiar el color del texto.
 void setColor(int n){
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), n); 
 }
 
-//Ocultar el cursor.
+//Ocultar el cursor que parpadea en la consola.
 void ocultarCursor(){
 	HANDLE hCon;
 	hCon = GetStdHandle(STD_OUTPUT_HANDLE);

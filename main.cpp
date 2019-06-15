@@ -39,8 +39,6 @@ struct Record {
 	int time;
 };
 
-void gotoxy(int, int);
-void gotoxy(int, int, string);
 void setColor(int);
 void ocultarCursor();
 void mostrarInicio(SDL);
@@ -48,6 +46,7 @@ void mostrarInstrucciones(SDL);
 void mostrarRecords(SDL);
 void iniciarJuego(SDL);
 void llenarPreguntas(list<Pregunta>&);
+void agregarPregunta(int, string, list<Pregunta> &);
 void llenarRecords(list<Record>&);
 Pregunta preguntar();
 bool existePregunta(Pregunta, list<Pregunta>);
@@ -69,7 +68,7 @@ int main(int argc, char *args[]) {
 void iniciarJuego(SDL sdl){
 	list<Pregunta> preguntas;
 	list<Record> records;
-	Imagen *fondo1 = sdl.loadImg("img/crucigrama.png");
+	Imagen *fondo1 = sdl.loadImg("img/tablero.png");
 	
 	llenarPreguntas(preguntas);
 	llenarRecords(records);
@@ -287,11 +286,11 @@ void mostrarRecords(SDL sdl){
     sdl.destruir(fondo1);
 }
 
-//Llenar la lista de preguntas con todo lo que tiene el crucigrama.
-void llenarPreguntas(list<Pregunta> &preguntas){
+//Agregar el numero y respuesta, a la lista de preguntas.
+void agregarPregunta(int num, string respuesta, list<Pregunta> &preguntas){
 	Pregunta p;
-	p.num = 1;
-	p.respuesta = "rodrigo";
+	p.num = num;
+	p.respuesta = respuesta;
 	preguntas.push_back(p);
 }
 
@@ -383,4 +382,94 @@ void ocultarCursor(){
 	cci.dwSize = 50;
 	cci.bVisible = FALSE;
 	SetConsoleCursorInfo(hCon, &cci);
+}
+
+//Llenar la lista de preguntas con todo lo que tiene el crucigrama.
+void llenarPreguntas(list<Pregunta> &preguntas){
+	agregarPregunta(1, "agregar", preguntas);
+	agregarPregunta(2, "hexa", preguntas);
+	agregarPregunta(3, "hepsilon", preguntas);
+	agregarPregunta(4, "abeliano", preguntas);
+	agregarPregunta(5, "altimetria", preguntas);
+	agregarPregunta(6, "cero", preguntas);
+	agregarPregunta(7, "micrometria", preguntas);
+	agregarPregunta(8, "par", preguntas);
+	agregarPregunta(9, "año", preguntas);
+	agregarPregunta(10, "centroide", preguntas);
+	agregarPregunta(11, "ker", preguntas);
+	agregarPregunta(12, "ecuacion", preguntas);
+	agregarPregunta(13, "cubicacion", preguntas);
+	agregarPregunta(14, "angulo", preguntas);
+	agregarPregunta(15, "cien", preguntas);
+	agregarPregunta(16, "exa", preguntas);
+	agregarPregunta(17, "metro", preguntas);
+	agregarPregunta(18, "uno", preguntas);
+	agregarPregunta(19, "arbol", preguntas);
+	agregarPregunta(20, "giro", preguntas);
+	agregarPregunta(21, "alfa", preguntas);
+	agregarPregunta(22, "mantisa", preguntas);
+	agregarPregunta(23, "hectolitro", preguntas);
+	agregarPregunta(24, "largo", preguntas);
+	agregarPregunta(25, "marco", preguntas);
+	agregarPregunta(26, "tesis", preguntas);
+	agregarPregunta(27, "heptaedro", preguntas);
+	agregarPregunta(28, "equidistante", preguntas);
+	agregarPregunta(29, "cifra", preguntas);
+	agregarPregunta(30, "arista", preguntas);
+	agregarPregunta(31, "axial", preguntas);
+	agregarPregunta(32, "aplicacion", preguntas);
+	agregarPregunta(33, "matematica", preguntas);
+	agregarPregunta(34, "eje", preguntas);
+	agregarPregunta(35, "hora", preguntas);
+	agregarPregunta(36, "pentagono", preguntas);
+	agregarPregunta(37, "signo", preguntas);
+	agregarPregunta(38, "vector", preguntas);
+	agregarPregunta(39, "conica", preguntas);
+	agregarPregunta(40, "mil", preguntas);
+	agregarPregunta(41, "minuto", preguntas);
+	agregarPregunta(42, "equis", preguntas);
+	agregarPregunta(43, "perimetro", preguntas);
+	agregarPregunta(44, "ley", preguntas);
+	agregarPregunta(45, "rectangulo", preguntas);
+	agregarPregunta(46, "altura", preguntas);
+	agregarPregunta(47, "litro", preguntas);
+	agregarPregunta(48, "operar", preguntas);
+	agregarPregunta(49, "division", preguntas);
+	agregarPregunta(50, "eneagono", preguntas);
+	agregarPregunta(51, "cos", preguntas);
+	agregarPregunta(52, "ssi", preguntas);
+	agregarPregunta(53, "cara", preguntas);
+	agregarPregunta(54, "ni", preguntas);
+	agregarPregunta(55, "binomio", preguntas);
+	agregarPregunta(56, "exacto", preguntas);
+	agregarPregunta(57, "micra", preguntas);
+	agregarPregunta(58, "censo", preguntas);
+	agregarPregunta(59, "cubica", preguntas);
+	agregarPregunta(60, "inferencia", preguntas);
+	agregarPregunta(61, "tetraedro", preguntas);
+	agregarPregunta(62, "giga", preguntas);
+	agregarPregunta(63, "centro", preguntas);
+	agregarPregunta(64, "duplo", preguntas);
+	agregarPregunta(65, "reduccion", preguntas);
+	agregarPregunta(66, "digito", preguntas);
+	agregarPregunta(67, "notacion", preguntas);
+	agregarPregunta(68, "kilo", preguntas);
+	agregarPregunta(69, "adicion", preguntas);
+	agregarPregunta(70, "yarda", preguntas);
+	agregarPregunta(71, "seno", preguntas);
+	agregarPregunta(72, "legua", preguntas);
+	agregarPregunta(73, "tensor", preguntas);
+	agregarPregunta(74, "decena", preguntas);
+	agregarPregunta(75, "ceviana", preguntas);
+	agregarPregunta(76, "alineados", preguntas);
+	agregarPregunta(77, "suma", preguntas);
+	agregarPregunta(78, "deca", preguntas);
+	agregarPregunta(79, "union", preguntas);
+	agregarPregunta(80, "cono", preguntas);
+	agregarPregunta(81, "equiangulo", preguntas);
+	agregarPregunta(82, "nodo", preguntas);
+	agregarPregunta(83, "masa", preguntas);
+	agregarPregunta(84, "numerar", preguntas);
+	agregarPregunta(85, "menos", preguntas);
+	agregarPregunta(86, "bruja", preguntas);
 }

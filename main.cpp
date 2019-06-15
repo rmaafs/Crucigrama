@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 #include "Botones.h"
 #include "SDL.h"
 
@@ -59,6 +60,7 @@ void agregarCuadro(int, int, int, list<Cuadro> &);
 void agregarCuadro(int, int, int, int, list<Cuadro> &);
 void dibujarCuadros(SDL, Imagen*, list<Cuadro> &);
 Pregunta preguntar();
+void desactivarCuadros(int, list<Cuadro> &);
 bool existePregunta(Pregunta, list<Pregunta>);
 void eliminar(list<Pregunta>&, Pregunta);
 void guardarRecord(list<Record> &, auto);
@@ -89,12 +91,6 @@ void iniciarJuego(SDL sdl){
 	llenarCuadros(cuadros);
 	
 	auto start = std::chrono::system_clock::now();//Empezar a contar el tiempo
-	
-	int x = 0, y = 0, aumentador = 1;
-	
-	list<Cuadro> cua;
-	ofstream myfile;
-    myfile.open ("cuadros.txt");
     
 	
 	while (true){
@@ -102,112 +98,28 @@ void iniciarJuego(SDL sdl){
     		break;//Terminar el ciclo para que no se imrpima.
 		}
 		
-		switch (sdl.botonClickeado()){
-        	case W:
-        		y -= aumentador;
-        		sdl.esperar(50);
-        		break;
-        	case S:
-        		y += aumentador;
-        		sdl.esperar(50);
-				break;
-			case A:
-				x -= aumentador;
-				sdl.esperar(50);
-				break;
-			case D:
-				x += aumentador;
-				sdl.esperar(50);
-				break;
-			case Q:
-				aumentador--;
-				sdl.esperar(50);
-				break;
-			case E:
-				aumentador++;
-				sdl.esperar(50);
-				break;
-			case SPACE:
-				cout << "x = " << x << ", y = " << y << endl;
-				agregarCuadro(1, x, y, cuadros);
-				Cuadro cc;
-				cc.x = x;
-				cc.y = y;
-				cc.pregunta = 0;
-				cc.subpregunta = 0;
-				cua.push_back(cc);
-				sdl.esperar(500);
-				break;
-			case P:
-				cout << "x = " << x << ", y = " << y << endl;
-				agregarCuadro(1, x, y, cuadros);
-				Cuadro c;
-				c.x = x;
-				c.y = y;
-				c.pregunta = 0;
-				cout << "Dame subpregunta: " << endl;
-				cin >> c.subpregunta;
-				cua.push_back(c);
-				sdl.esperar(500);
-				break;
-			case K:
-				system("CLS");
-				sdl.esperar(100);
-				break;
-			case UP:
-				int pregunta;
-				cout << endl << "Cual es la pregunta? " << endl;
-				cin >> pregunta;
-				for(auto iter = cua.begin(); iter!=cua.end(); iter++){
-				    Cuadro c = *iter;
-				    if (c.pregunta == 0){
-				    	c.pregunta = pregunta;
-					}
-					if (c.subpregunta == 0){
-						cout << "agregarCuadro(" << c.pregunta << ", " << c.x << ", " << c.y << ", cuadros);" << endl;
-						myfile << "agregarCuadro(" << c.pregunta << ", " << c.x << ", " << c.y << ", cuadros);\n";
-					} else {
-						cout << "agregarCuadro(" << c.pregunta << ", " << c.subpregunta << ", " << c.x << ", " << c.y << ", cuadros);" << endl;
-						myfile << "agregarCuadro(" << c.pregunta << ", " << c.subpregunta << ", " << c.x << ", " << c.y << ", cuadros);\n";
-					}
-					
-				}
-				cua.clear();
-				cout << endl; system("PAUSE");
-				system("CLS");
-				sdl.esperar(500);
-				break;
-			case DOWN:
-				cout << endl << "Cerrando..." << endl;
-				myfile.close();
-				cout << endl << "CERRADO.";
-				sdl.esperar(500);
-				break;
-		}
-		
         sdl.limpiar();
         sdl.setColorFondo(0, 0, 0);
         
         sdl.dibujar(fondo1);
         dibujarCuadros(sdl, cuadro, cuadros);
-        sdl.dibujar(cuadro, x, y, 12, 12);
         
         sdl.render();
         sdl.esperar(7);
         
-        /*Pregunta p = preguntar();
-        if (existePregunta(p, preguntas)){
-        	eliminar(preguntas, p);
+        Pregunta p = preguntar();
+        if (existePregunta(p, preguntas)){//Si la respuesta que contestó, existe...
+        	eliminar(preguntas, p);//Eliminar la pregunta de la lista de preguntas.
+        	desactivarCuadros(p.num, cuadros);//Eliminar los cuadros blancos que tapan la respuesta.
+        	cout << "CORRECTO!" << endl;
         	if (preguntas.size() == 0) break;
 		} else {
 			setColor(ROJO);
 			cout << endl << endl << "Respuesta incorrecta." << endl;
 		}
 
-		system("PAUSE");*/
+		system("PAUSE");
     }
-    
-    myfile.close();
     
     if (preguntas.size() == 0){
     	//Como el juego ha terminado porque ha completado todas las preguntas...
@@ -215,6 +127,26 @@ void iniciarJuego(SDL sdl){
 	}
     
     sdl.destruir(fondo1);
+}
+
+void desactivarCuadros(int pregunta, list<Cuadro> &cuadros){
+	
+	list <Cuadro> :: iterator it = cuadros.begin();
+	while (it != cuadros.end()){
+		Cuadro c = *it;
+	    if (c.pregunta == pregunta || c.subpregunta == pregunta){
+	        it = cuadros.erase(it);
+	    } else {
+	        ++it;
+	    }
+	}
+	
+	/*for(auto iter = cuadros.begin(); iter!=cuadros.end(); iter++){
+	    Cuadro c = *iter;
+	    if (c.pregunta == pregunta || c.subpregunta == pregunta){
+	    	
+		}
+	}*/
 }
 
 //Función que le pregunta el nombre al jugador, para guardarlo en el archivo de records.
@@ -253,6 +185,10 @@ Pregunta preguntar(){
 	cout << endl << endl << "Ingresa la respuesta de la pregunta " << num << endl;
 	setColor(VERDE);
 	cin >> respuesta;
+	
+	//Convertimos la respuesta a todas letras minúsculas.
+	transform(respuesta.begin(), respuesta.end(), respuesta.begin(), ::tolower);
+	
 	cout << endl << endl;
 	Pregunta p;
 	p.num = num;
@@ -509,6 +445,7 @@ void agregarCuadro(int pregunta, int x, int y, list<Cuadro> &cuadros){
 void agregarCuadro(int pregunta, int subpregunta, int x, int y, list<Cuadro> &cuadros){
 	Cuadro c;
 	c.pregunta = pregunta;
+	c.subpregunta = subpregunta;
 	c.x = x;
 	c.y = y;
 	cuadros.push_back(c);

@@ -29,6 +29,12 @@ using namespace std;
 //Convertir el tipo de clase SDL_Texture para poder interpretarlo como "Imagen"
 typedef SDL_Texture Imagen;
 
+struct Cuadro {
+	int pregunta;
+	int subpregunta;//Si hay otra frase que ya ha desbloqueado esa palabra, no tapar la letra que ya se descubrió.
+	int x, y;
+};
+
 struct Pregunta {
 	int num;
 	string respuesta;
@@ -48,6 +54,10 @@ void iniciarJuego(SDL);
 void llenarPreguntas(list<Pregunta>&);
 void agregarPregunta(int, string, list<Pregunta> &);
 void llenarRecords(list<Record>&);
+void llenarCuadros(list<Cuadro> &);
+void agregarCuadro(int, int, int, list<Cuadro> &);
+void agregarCuadro(int, int, int, int, list<Cuadro> &);
+void dibujarCuadros(SDL, Imagen*, list<Cuadro> &);
 Pregunta preguntar();
 bool existePregunta(Pregunta, list<Pregunta>);
 void eliminar(list<Pregunta>&, Pregunta);
@@ -60,7 +70,8 @@ bool isNumber(const string&);
 int main(int argc, char *args[]) {
 	ocultarCursor();//Ocultar el cursor que parpadea en consola.
 	SDL sdl;
-	mostrarInicio(sdl);
+	//mostrarInicio(sdl);
+	iniciarJuego(sdl);
     return 0;
 }
 
@@ -68,27 +79,123 @@ int main(int argc, char *args[]) {
 void iniciarJuego(SDL sdl){
 	list<Pregunta> preguntas;
 	list<Record> records;
+	list<Cuadro> cuadros;
+	
 	Imagen *fondo1 = sdl.loadImg("img/tablero.png");
+	Imagen *cuadro = sdl.loadImg("img/cuadro.png");
 	
 	llenarPreguntas(preguntas);
 	llenarRecords(records);
+	llenarCuadros(cuadros);
 	
 	auto start = std::chrono::system_clock::now();//Empezar a contar el tiempo
+	
+	int x = 0, y = 0, aumentador = 1;
+	
+	list<Cuadro> cua;
+	ofstream myfile;
+    myfile.open ("cuadros.txt");
+    
 	
 	while (true){
     	if (sdl.clickeoSalir()){//Si el jugador ha precionado la X para cerrar la ventana...
     		break;//Terminar el ciclo para que no se imrpima.
 		}
 		
+		switch (sdl.botonClickeado()){
+        	case W:
+        		y -= aumentador;
+        		sdl.esperar(50);
+        		break;
+        	case S:
+        		y += aumentador;
+        		sdl.esperar(50);
+				break;
+			case A:
+				x -= aumentador;
+				sdl.esperar(50);
+				break;
+			case D:
+				x += aumentador;
+				sdl.esperar(50);
+				break;
+			case Q:
+				aumentador--;
+				sdl.esperar(50);
+				break;
+			case E:
+				aumentador++;
+				sdl.esperar(50);
+				break;
+			case SPACE:
+				cout << "x = " << x << ", y = " << y << endl;
+				agregarCuadro(1, x, y, cuadros);
+				Cuadro cc;
+				cc.x = x;
+				cc.y = y;
+				cc.pregunta = 0;
+				cc.subpregunta = 0;
+				cua.push_back(cc);
+				sdl.esperar(500);
+				break;
+			case P:
+				cout << "x = " << x << ", y = " << y << endl;
+				agregarCuadro(1, x, y, cuadros);
+				Cuadro c;
+				c.x = x;
+				c.y = y;
+				c.pregunta = 0;
+				cout << "Dame subpregunta: " << endl;
+				cin >> c.subpregunta;
+				cua.push_back(c);
+				sdl.esperar(500);
+				break;
+			case K:
+				system("CLS");
+				sdl.esperar(100);
+				break;
+			case UP:
+				int pregunta;
+				cout << endl << "Cual es la pregunta? " << endl;
+				cin >> pregunta;
+				for(auto iter = cua.begin(); iter!=cua.end(); iter++){
+				    Cuadro c = *iter;
+				    if (c.pregunta == 0){
+				    	c.pregunta = pregunta;
+					}
+					if (c.subpregunta == 0){
+						cout << "agregarCuadro(" << c.pregunta << ", " << c.x << ", " << c.y << ", cuadros);" << endl;
+						myfile << "agregarCuadro(" << c.pregunta << ", " << c.x << ", " << c.y << ", cuadros);\n";
+					} else {
+						cout << "agregarCuadro(" << c.pregunta << ", " << c.subpregunta << ", " << c.x << ", " << c.y << ", cuadros);" << endl;
+						myfile << "agregarCuadro(" << c.pregunta << ", " << c.subpregunta << ", " << c.x << ", " << c.y << ", cuadros);\n";
+					}
+					
+				}
+				cua.clear();
+				cout << endl; system("PAUSE");
+				system("CLS");
+				sdl.esperar(500);
+				break;
+			case DOWN:
+				cout << endl << "Cerrando..." << endl;
+				myfile.close();
+				cout << endl << "CERRADO.";
+				sdl.esperar(500);
+				break;
+		}
+		
         sdl.limpiar();
         sdl.setColorFondo(0, 0, 0);
         
         sdl.dibujar(fondo1);
+        dibujarCuadros(sdl, cuadro, cuadros);
+        sdl.dibujar(cuadro, x, y, 12, 12);
         
         sdl.render();
         sdl.esperar(7);
         
-        Pregunta p = preguntar();
+        /*Pregunta p = preguntar();
         if (existePregunta(p, preguntas)){
         	eliminar(preguntas, p);
         	if (preguntas.size() == 0) break;
@@ -97,8 +204,10 @@ void iniciarJuego(SDL sdl){
 			cout << endl << endl << "Respuesta incorrecta." << endl;
 		}
 
-		system("PAUSE");
+		system("PAUSE");*/
     }
+    
+    myfile.close();
     
     if (preguntas.size() == 0){
     	//Como el juego ha terminado porque ha completado todas las preguntas...
@@ -382,6 +491,552 @@ void ocultarCursor(){
 	cci.dwSize = 50;
 	cci.bVisible = FALSE;
 	SetConsoleCursorInfo(hCon, &cci);
+}
+
+void dibujarCuadros(SDL sdl, Imagen *imagen, list<Cuadro> &cuadros){
+	for(auto iter = cuadros.begin(); iter!=cuadros.end(); iter++){
+	    Cuadro c = *iter;
+	    sdl.dibujar(imagen, c.x, c.y, 12, 12);
+	}
+}
+
+//Agregar un cuadro a la lista de cuadros, mandando x & y.
+void agregarCuadro(int pregunta, int x, int y, list<Cuadro> &cuadros){
+	agregarCuadro(pregunta, 0, x, y, cuadros);
+}
+
+//Agregar un cuadro a la lista de cuadros, mandando x & y y la subpregunta.
+void agregarCuadro(int pregunta, int subpregunta, int x, int y, list<Cuadro> &cuadros){
+	Cuadro c;
+	c.pregunta = pregunta;
+	c.x = x;
+	c.y = y;
+	cuadros.push_back(c);
+}
+
+//Tapar las letras del crucigrama con cuadros blancos.
+void llenarCuadros(list<Cuadro> &cuadros){
+	//Cuadros de la pregunta regunta 1
+	agregarCuadro(1, 611, 10, cuadros);
+	agregarCuadro(1, 611, 32, cuadros);
+	agregarCuadro(1, 611, 53, cuadros);
+	agregarCuadro(1, 611, 75, cuadros);
+	agregarCuadro(1, 611, 95, cuadros);
+	agregarCuadro(1, 19, 611, 117, cuadros);
+	agregarCuadro(1, 611, 137, cuadros);
+	//------------------------------
+	agregarCuadro(2, 722, 11, cuadros);
+	agregarCuadro(2, 3, 745, 11, cuadros);
+	agregarCuadro(2, 768, 11, cuadros);
+	agregarCuadro(2, 789, 11, cuadros);
+	//------------------------------
+	agregarCuadro(3, 745, 32, cuadros);
+	agregarCuadro(3, 745, 53, cuadros);
+	agregarCuadro(3, 13, 745, 74, cuadros);
+	agregarCuadro(3, 745, 96, cuadros);
+	agregarCuadro(3, 745, 116, cuadros);
+	agregarCuadro(3, 745, 137, cuadros);
+	
+	agregarCuadro(4, 856, 11, cuadros);
+	agregarCuadro(4, 878, 11, cuadros);
+	agregarCuadro(4, 900, 11, cuadros);
+	agregarCuadro(4, 922, 11, cuadros);
+	agregarCuadro(4, 945, 11, cuadros);
+	agregarCuadro(4, 967, 11, cuadros);
+	agregarCuadro(4, 989, 10, cuadros);
+	agregarCuadro(4, 5, 967, 11, cuadros);//---
+	agregarCuadro(4, 1013, 11, cuadros);
+	
+	agregarCuadro(5, 968, 32, cuadros);
+	agregarCuadro(5, 10, 968, 53, cuadros);//---
+	agregarCuadro(5, 968, 74, cuadros);
+	agregarCuadro(5, 17, 968, 96, cuadros);
+	agregarCuadro(5, 968, 116, cuadros);
+	agregarCuadro(5, 22, 968, 137, cuadros);
+	agregarCuadro(5, 968, 159, cuadros);
+	agregarCuadro(5, 28, 968, 180, cuadros);
+	agregarCuadro(5, 968, 201, cuadros);
+	
+	agregarCuadro(6, 1147, 10, cuadros);
+	agregarCuadro(6, 1169, 11, cuadros);
+	agregarCuadro(6, 1191, 11, cuadros);
+	agregarCuadro(6, 1213, 11, cuadros);
+	
+	agregarCuadro(7, 677, 32, cuadros);
+	agregarCuadro(7, 677, 54, cuadros);
+	agregarCuadro(7, 13, 677, 75, cuadros);
+	agregarCuadro(7, 678, 96, cuadros);
+	agregarCuadro(7, 19, 678, 116, cuadros);
+	agregarCuadro(7, 678, 137, cuadros);
+	agregarCuadro(7, 678, 158, cuadros);
+	agregarCuadro(7, 27, 678, 179, cuadros);
+	agregarCuadro(7, 678, 201, cuadros);
+	agregarCuadro(7, 678, 221, cuadros);
+	agregarCuadro(7, 35, 678, 243, cuadros);
+	
+	agregarCuadro(8, 812, 32, cuadros);
+	agregarCuadro(8, 834, 32, cuadros);
+	agregarCuadro(8, 856, 32, cuadros);
+	
+	agregarCuadro(9, 1101, 32, cuadros);
+	agregarCuadro(9, 1123, 32, cuadros);
+	agregarCuadro(9, 1125, 30, cuadros);
+	agregarCuadro(9, 1147, 32, cuadros);
+	
+	agregarCuadro(10, 901, 54, cuadros);
+	agregarCuadro(10, 922, 54, cuadros);
+	agregarCuadro(10, 945, 54, cuadros);
+	agregarCuadro(10, 991, 54, cuadros);
+	agregarCuadro(10, 1012, 54, cuadros);
+	agregarCuadro(10, 1034, 54, cuadros);
+	agregarCuadro(10, 1057, 54, cuadros);
+	agregarCuadro(10, 1080, 54, cuadros);
+	
+	agregarCuadro(11, 1191, 53, cuadros);
+	agregarCuadro(11, 12, 1213, 53, cuadros);
+	agregarCuadro(11, 1235, 53, cuadros);
+	
+	agregarCuadro(12, 1213, 74, cuadros);
+	agregarCuadro(12, 18, 1213, 95, cuadros);
+	agregarCuadro(12, 21, 1213, 116, cuadros);
+	agregarCuadro(12, 1213, 137, cuadros);
+	agregarCuadro(12, 26, 1213, 159, cuadros);
+	agregarCuadro(12, 1213, 180, cuadros);
+	agregarCuadro(12, 1213, 200, cuadros);
+	
+	agregarCuadro(13, 700, 75, cuadros);
+	agregarCuadro(13, 723, 75, cuadros);
+	agregarCuadro(13, 768, 75, cuadros);
+	agregarCuadro(13, 14, 788, 75, cuadros);
+	agregarCuadro(13, 812, 75, cuadros);
+	agregarCuadro(13, 834, 75, cuadros);
+	agregarCuadro(13, 857, 75, cuadros);
+	agregarCuadro(13, 878, 75, cuadros);
+	
+	agregarCuadro(14, 789, 95, cuadros);
+	agregarCuadro(14, 20, 789, 117, cuadros);
+	agregarCuadro(14, 789, 137, cuadros);
+	agregarCuadro(14, 24, 789, 159, cuadros);
+	agregarCuadro(14, 27, 789, 179, cuadros);
+	
+	agregarCuadro(15, 1102, 75, cuadros);
+	agregarCuadro(15, 1124, 75, cuadros);
+	agregarCuadro(15, 1146, 75, cuadros);
+	agregarCuadro(15, 1168, 75, cuadros);
+	
+	agregarCuadro(16, 924, 95, cuadros);
+	agregarCuadro(16, 924, 117, cuadros);
+	agregarCuadro(16, 22, 924, 137, cuadros);
+	
+	agregarCuadro(17, 990, 95, cuadros);
+	agregarCuadro(17, 1012, 95, cuadros);
+	agregarCuadro(17, 1036, 95, cuadros);
+	agregarCuadro(17, 1058, 95, cuadros);
+	
+	agregarCuadro(18, 1236, 95, cuadros);
+	agregarCuadro(18, 1259, 95, cuadros);
+	
+	agregarCuadro(19, 633, 117, cuadros);
+	agregarCuadro(19, 655, 117, cuadros);
+	agregarCuadro(19, 701, 117, cuadros);
+	
+	agregarCuadro(20, 813, 117, cuadros);
+	agregarCuadro(20, 835, 117, cuadros);
+	agregarCuadro(20, 857, 117, cuadros);
+	
+	agregarCuadro(21, 1147, 116, cuadros);
+	agregarCuadro(21, 1169, 116, cuadros);
+	agregarCuadro(21, 1191, 116, cuadros);
+	
+	agregarCuadro(22, 901, 138, cuadros);
+	agregarCuadro(22, 945, 138, cuadros);
+	agregarCuadro(22, 989, 138, cuadros);
+	agregarCuadro(22, 1013, 138, cuadros);
+	agregarCuadro(22, 1035, 138, cuadros);
+	
+	agregarCuadro(23, 633, 158, cuadros);
+	agregarCuadro(23, 27, 633, 180, cuadros);
+	agregarCuadro(23, 633, 200, cuadros);
+	agregarCuadro(23, 633, 222, cuadros);
+	agregarCuadro(23, 35, 633, 244, cuadros);
+	agregarCuadro(23, 633, 264, cuadros);
+	agregarCuadro(23, 40, 633, 286, cuadros);
+	agregarCuadro(23, 633, 306, cuadros);
+	agregarCuadro(23, 633, 328, cuadros);
+	agregarCuadro(23, 633, 348, cuadros);
+	
+	agregarCuadro(24, 812, 159, cuadros);
+	agregarCuadro(24, 834, 159, cuadros);
+	agregarCuadro(24, 855, 159, cuadros);
+	agregarCuadro(24, 879, 159, cuadros);
+	
+	agregarCuadro(25, 1080, 159, cuadros);
+	agregarCuadro(25, 28, 1080, 180, cuadros);
+	agregarCuadro(25, 1080, 201, cuadros);
+	agregarCuadro(25, 1080, 222, cuadros);
+	agregarCuadro(25, 36, 1080, 243, cuadros);
+	
+	agregarCuadro(26, 1145, 159, cuadros);
+	agregarCuadro(26, 1169, 159, cuadros);
+	agregarCuadro(26, 1193, 159, cuadros);
+	agregarCuadro(26, 1237, 159, cuadros);
+	
+	agregarCuadro(27, 610, 179, cuadros);
+	agregarCuadro(27, 658, 179, cuadros);
+	agregarCuadro(27, 700, 179, cuadros);
+	agregarCuadro(27, 721, 179, cuadros);
+	agregarCuadro(27, 745, 179, cuadros);
+	agregarCuadro(27, 769, 179, cuadros);
+	
+	agregarCuadro(28, 901, 179, cuadros);
+	agregarCuadro(28, 922, 179, cuadros);
+	agregarCuadro(28, 946, 179, cuadros);
+	agregarCuadro(28, 991, 179, cuadros);
+	agregarCuadro(28, 1012, 179, cuadros);
+	agregarCuadro(28, 1036, 179, cuadros);
+	agregarCuadro(28, 1057, 179, cuadros);
+	agregarCuadro(28, 1102, 179, cuadros);
+	agregarCuadro(28, 1123, 179, cuadros);
+	agregarCuadro(28, 1147, 179, cuadros);
+	
+	agregarCuadro(29, 1258, 200, cuadros);
+	agregarCuadro(29, 1258, 221, cuadros);
+	agregarCuadro(29, 1258, 242, cuadros);
+	agregarCuadro(29, 38, 1258, 263, cuadros);
+	agregarCuadro(29, 1258, 284, cuadros);
+	
+	agregarCuadro(30, 744, 223, cuadros);
+	agregarCuadro(30, 744, 243, cuadros);
+	agregarCuadro(30, 37, 744, 265, cuadros);
+	agregarCuadro(30, 744, 285, cuadros);
+	agregarCuadro(30, 744, 307, cuadros);
+	agregarCuadro(30, 46, 744, 327, cuadros);
+	
+	agregarCuadro(31, 789, 222, cuadros);
+	agregarCuadro(31, 813, 222, cuadros);
+	agregarCuadro(31, 833, 222, cuadros);
+	agregarCuadro(31, 32, 857, 222, cuadros);
+	agregarCuadro(31, 879, 222, cuadros);
+	
+	agregarCuadro(32, 856, 244, cuadros);
+	agregarCuadro(32, 856, 264, cuadros);
+	agregarCuadro(32, 41, 856, 284, cuadros);
+	agregarCuadro(32, 856, 306, cuadros);
+	agregarCuadro(32, 46, 856, 328, cuadros);
+	agregarCuadro(32, 53, 856, 348, cuadros);
+	agregarCuadro(32, 54, 856, 370, cuadros);
+	agregarCuadro(32, 856, 390, cuadros);
+	agregarCuadro(32, 60, 856, 412, cuadros);
+	
+	agregarCuadro(33, 1034, 223, cuadros);
+	agregarCuadro(33, 36, 1034, 243, cuadros);
+	agregarCuadro(33, 1034, 264, cuadros);
+	agregarCuadro(33, 42, 1034, 286, cuadros);
+	agregarCuadro(33, 1034, 306, cuadros);
+	agregarCuadro(33, 48, 1034, 327, cuadros);
+	agregarCuadro(33, 1034, 349, cuadros);
+	agregarCuadro(33, 1034, 370, cuadros);
+	agregarCuadro(33, 59, 1034, 391, cuadros);
+	agregarCuadro(33, 60, 1034, 411, cuadros);
+	
+	agregarCuadro(34, 1170, 222, cuadros);
+	agregarCuadro(34, 1170, 244, cuadros);
+	agregarCuadro(34, 38, 1170, 264, cuadros);
+	
+	agregarCuadro(35, 611, 244, cuadros);
+	agregarCuadro(35, 656, 244, cuadros);
+	
+	agregarCuadro(36, 946, 244, cuadros);
+	agregarCuadro(36, 968, 244, cuadros);
+	agregarCuadro(36, 990, 244, cuadros);
+	agregarCuadro(36, 1012, 244, cuadros);
+	agregarCuadro(36, 1056, 244, cuadros);
+	agregarCuadro(36, 1100, 244, cuadros);
+	agregarCuadro(36, 1124, 244, cuadros);
+	
+	agregarCuadro(37, 722, 265, cuadros);
+	agregarCuadro(37, 767, 265, cuadros);
+	agregarCuadro(37, 789, 265, cuadros);
+	agregarCuadro(37, 812, 265, cuadros);
+	
+	agregarCuadro(38, 1147, 265, cuadros);
+	agregarCuadro(38, 39, 1191, 265, cuadros);
+	agregarCuadro(38, 1213, 265, cuadros);
+	agregarCuadro(38, 1236, 265, cuadros);
+	
+	agregarCuadro(39, 1191, 285, cuadros);
+	agregarCuadro(39, 1191, 307, cuadros);
+	agregarCuadro(39, 1191, 327, cuadros);
+	agregarCuadro(39, 1191, 348, cuadros);
+	agregarCuadro(39, 56, 1191, 369, cuadros);
+	
+	agregarCuadro(40, 612, 286, cuadros);
+	agregarCuadro(40, 656, 286, cuadros);
+	
+	agregarCuadro(41, 833, 285, cuadros);
+	agregarCuadro(41, 879, 285, cuadros);
+	agregarCuadro(41, 901, 285, cuadros);
+	agregarCuadro(41, 923, 285, cuadros);
+	agregarCuadro(41, 947, 285, cuadros);
+	
+	agregarCuadro(42, 1057, 285, cuadros);
+	agregarCuadro(42, 1079, 285, cuadros);
+	agregarCuadro(42, 1101, 285, cuadros);
+	agregarCuadro(42, 1125, 285, cuadros);
+	
+	agregarCuadro(43, 701, 307, cuadros);
+	agregarCuadro(43, 701, 328, cuadros);
+	agregarCuadro(43, 701, 348, cuadros);
+	agregarCuadro(43, 701, 369, cuadros);
+	agregarCuadro(43, 57, 701, 391, cuadros);
+	agregarCuadro(43, 701, 412, cuadros);
+	agregarCuadro(43, 701, 433, cuadros);
+	agregarCuadro(43, 63, 701, 455, cuadros);
+	agregarCuadro(43, 701, 475, cuadros);
+	
+	agregarCuadro(44, 990, 307, cuadros);
+	agregarCuadro(44, 48, 990, 327, cuadros);
+	agregarCuadro(44, 990, 348, cuadros);
+	
+	agregarCuadro(45, 1235, 307, cuadros);
+	agregarCuadro(45, 1235, 328, cuadros);
+	agregarCuadro(45, 1235, 348, cuadros);
+	agregarCuadro(45, 56, 1235, 369, cuadros);
+	agregarCuadro(45, 1235, 390, cuadros);
+	agregarCuadro(45, 1235, 411, cuadros);
+	agregarCuadro(45, 62, 1235, 432, cuadros);
+	agregarCuadro(45, 1235, 454, cuadros);
+	agregarCuadro(45, 68, 1235, 475, cuadros);
+	agregarCuadro(45, 1235, 496, cuadros);
+	
+	agregarCuadro(46, 47, 768, 328, cuadros);
+	agregarCuadro(46, 789, 328, cuadros);
+	agregarCuadro(46, 811, 328, cuadros);
+	agregarCuadro(46, 834, 328, cuadros);
+	
+	agregarCuadro(47, 767, 348, cuadros);
+	agregarCuadro(47, 767, 370, cuadros);
+	agregarCuadro(47, 57, 767, 390, cuadros);
+	agregarCuadro(47, 767, 412, cuadros);
+	
+	agregarCuadro(48, 946, 328, cuadros);
+	agregarCuadro(48, 968, 328, cuadros);
+	agregarCuadro(48, 1013, 328, cuadros);
+	agregarCuadro(48, 1058, 328, cuadros);
+	
+	agregarCuadro(49, 1102, 328, cuadros);
+	agregarCuadro(49, 1102, 348, cuadros);
+	agregarCuadro(49, 1102, 369, cuadros);
+	agregarCuadro(49, 59, 1102, 391, cuadros);
+	agregarCuadro(49, 1102, 411, cuadros);
+	agregarCuadro(49, 1102, 433, cuadros);
+	agregarCuadro(49, 64, 1102, 454, cuadros);
+	agregarCuadro(49, 1102, 475, cuadros);
+	
+	agregarCuadro(50, 1147, 328, cuadros);
+	agregarCuadro(50, 1147, 349, cuadros);
+	agregarCuadro(50, 56, 1147, 370, cuadros);
+	agregarCuadro(50, 59, 1147, 391, cuadros);
+	agregarCuadro(50, 1147, 411, cuadros);
+	agregarCuadro(50, 1147, 432, cuadros);
+	agregarCuadro(50, 1147, 454, cuadros);
+	agregarCuadro(50, 1147, 475, cuadros);
+	
+	agregarCuadro(51, 611, 349, cuadros);
+	agregarCuadro(51, 611, 369, cuadros);
+	agregarCuadro(51, 611, 391, cuadros);
+	agregarCuadro(51, 611, 411, cuadros);
+	
+	agregarCuadro(52, 51, 656, 349, cuadros);
+	agregarCuadro(52, 656, 370, cuadros);
+	agregarCuadro(52, 656, 390, cuadros);
+	
+	agregarCuadro(53, 878, 349, cuadros);
+	agregarCuadro(53, 902, 349, cuadros);
+	agregarCuadro(53, 923, 349, cuadros);
+	
+	agregarCuadro(54, 834, 370, cuadros);
+	
+	agregarCuadro(55, 968, 370, cuadros);
+	agregarCuadro(55, 968, 390, cuadros);
+	agregarCuadro(55, 60, 968, 412, cuadros);
+	agregarCuadro(55, 968, 432, cuadros);
+	agregarCuadro(55, 968, 454, cuadros);
+	agregarCuadro(55, 968, 475, cuadros);
+	agregarCuadro(55, 968, 496, cuadros);
+	
+	agregarCuadro(56, 1168, 369, cuadros);
+	agregarCuadro(56, 1214, 369, cuadros);
+	agregarCuadro(56, 1258, 369, cuadros);
+	
+	agregarCuadro(57, 722, 390, cuadros);
+	agregarCuadro(57, 746, 390, cuadros);
+	agregarCuadro(57, 789, 390, cuadros);
+	
+	agregarCuadro(58, 902, 390, cuadros);
+	agregarCuadro(58, 60, 902, 412, cuadros);
+	agregarCuadro(58, 902, 433, cuadros);
+	agregarCuadro(58, 902, 454, cuadros);
+	agregarCuadro(58, 65, 902, 475, cuadros);
+	
+	agregarCuadro(59, 1057, 391, cuadros);
+	agregarCuadro(59, 1079, 391, cuadros);
+	agregarCuadro(59, 1125, 391, cuadros);
+	
+	agregarCuadro(60, 833, 412, cuadros);
+	agregarCuadro(60, 879, 412, cuadros);
+	agregarCuadro(60, 924, 412, cuadros);
+	agregarCuadro(60, 946, 412, cuadros);
+	agregarCuadro(60, 991, 412, cuadros);
+	agregarCuadro(60, 1012, 412, cuadros);
+	
+	agregarCuadro(61, 633, 433, cuadros);
+	agregarCuadro(61, 63, 633, 455, cuadros);
+	agregarCuadro(61, 633, 474, cuadros);
+	agregarCuadro(61, 634, 496, cuadros);
+	agregarCuadro(61, 70, 633, 518, cuadros);
+	agregarCuadro(61, 633, 538, cuadros);
+	agregarCuadro(61, 78, 633, 559, cuadros);
+	agregarCuadro(61, 634, 580, cuadros);
+	agregarCuadro(61, 82, 634, 601, cuadros);
+	
+	agregarCuadro(62, 1192, 432, cuadros);
+	agregarCuadro(62, 1212, 432, cuadros);
+	agregarCuadro(62, 1256, 432, cuadros);
+	
+	agregarCuadro(63, 612, 454, cuadros);
+	agregarCuadro(63, 656, 454, cuadros);
+	agregarCuadro(63, 677, 454, cuadros);
+	agregarCuadro(63, 723, 454, cuadros);
+	
+	agregarCuadro(64, 1013, 454, cuadros);
+	agregarCuadro(64, 1035, 454, cuadros);
+	agregarCuadro(64, 1058, 454, cuadros);
+	agregarCuadro(64, 1079, 454, cuadros);
+	
+	agregarCuadro(65, 745, 475, cuadros);
+	agregarCuadro(65, 768, 475, cuadros);
+	agregarCuadro(65, 66, 789, 475, cuadros);
+	agregarCuadro(65, 812, 475, cuadros);
+	agregarCuadro(65, 834, 475, cuadros);
+	agregarCuadro(65, 857, 475, cuadros);
+	agregarCuadro(65, 878, 475, cuadros);
+	agregarCuadro(65, 67, 922, 475, cuadros);
+	
+	agregarCuadro(66, 790, 496, cuadros);
+	agregarCuadro(66, 790, 517, cuadros);
+	agregarCuadro(66, 75, 790, 538, cuadros);
+	agregarCuadro(66, 790, 559, cuadros);
+	agregarCuadro(66, 80, 790, 580, cuadros);
+	
+	agregarCuadro(67, 924, 496, cuadros);
+	agregarCuadro(67, 924, 517, cuadros);
+	agregarCuadro(67, 76, 924, 539, cuadros);
+	agregarCuadro(67, 924, 560, cuadros);
+	agregarCuadro(67, 81, 924, 581, cuadros);
+	agregarCuadro(67, 924, 601, cuadros);
+	agregarCuadro(67, 85, 924, 622, cuadros);
+	
+	agregarCuadro(68, 1192, 476, cuadros);
+	agregarCuadro(68, 1213, 476, cuadros);
+	agregarCuadro(68, 1257, 476, cuadros);
+	
+	agregarCuadro(69, 677, 497, cuadros);
+	agregarCuadro(69, 70, 677, 517, cuadros);
+	agregarCuadro(69, 677, 538, cuadros);
+	agregarCuadro(69, 78, 677, 560, cuadros);
+	agregarCuadro(69, 677, 580, cuadros);
+	agregarCuadro(69, 82, 677, 602, cuadros);
+	agregarCuadro(69, 84, 677, 623, cuadros);
+	
+	agregarCuadro(70, 611, 518, cuadros);
+	agregarCuadro(70, 656, 518, cuadros);
+	agregarCuadro(70, 700, 518, cuadros);
+	
+	agregarCuadro(71, 745, 518, cuadros);
+	agregarCuadro(71, 75, 745, 539, cuadros);
+	agregarCuadro(71, 745, 559, cuadros);
+	agregarCuadro(71, 80, 745, 581, cuadros);
+	
+	agregarCuadro(72, 1012, 518, cuadros);
+	agregarCuadro(72, 76, 1012, 538, cuadros);
+	agregarCuadro(72, 1012, 560, cuadros);
+	agregarCuadro(72, 81, 1012, 580, cuadros);
+	agregarCuadro(72, 1012, 601, cuadros);
+	
+	agregarCuadro(73, 1192, 518, cuadros);
+	agregarCuadro(73, 1192, 539, cuadros);
+	agregarCuadro(73, 79, 1192, 560, cuadros);
+	agregarCuadro(73, 1192, 581, cuadros);
+	agregarCuadro(73, 1192, 602, cuadros);
+	agregarCuadro(73, 86, 1192, 623, cuadros);
+	
+	agregarCuadro(74, 1258, 518, cuadros);
+	agregarCuadro(74, 1258, 539, cuadros);
+	agregarCuadro(74, 1258, 559, cuadros);
+	agregarCuadro(74, 1258, 581, cuadros);
+	agregarCuadro(74, 1258, 602, cuadros);
+	agregarCuadro(74, 86, 1258, 622, cuadros);
+	
+	agregarCuadro(75, 723, 539, cuadros);
+	agregarCuadro(75, 767, 539, cuadros);
+	agregarCuadro(75, 813, 539, cuadros);
+	agregarCuadro(75, 834, 539, cuadros);
+	agregarCuadro(75, 856, 539, cuadros);
+	
+	agregarCuadro(76, 945, 538, cuadros);
+	agregarCuadro(76, 966, 538, cuadros);
+	agregarCuadro(76, 990, 538, cuadros);
+	agregarCuadro(76, 1035, 538, cuadros);
+	agregarCuadro(76, 1056, 538, cuadros);
+	agregarCuadro(76, 1079, 538, cuadros);
+	agregarCuadro(76, 77, 1102, 538, cuadros);
+	
+	agregarCuadro(77, 79, 1102, 560, cuadros);
+	agregarCuadro(77, 1102, 581, cuadros);
+	agregarCuadro(77, 83, 1102, 601, cuadros);
+	
+	agregarCuadro(78, 656, 560, cuadros);
+	agregarCuadro(78, 700, 560, cuadros);
+	
+	agregarCuadro(79, 1123, 560, cuadros);
+	agregarCuadro(79, 1145, 560, cuadros);
+	agregarCuadro(79, 1169, 560, cuadros);
+	
+	agregarCuadro(80, 723, 581, cuadros);
+	agregarCuadro(80, 766, 581, cuadros);
+	
+	agregarCuadro(81, 858, 580, cuadros);
+	agregarCuadro(81, 880, 580, cuadros);
+	agregarCuadro(81, 900, 580, cuadros);
+	agregarCuadro(81, 945, 580, cuadros);
+	agregarCuadro(81, 967, 580, cuadros);
+	agregarCuadro(81, 990, 580, cuadros);
+	agregarCuadro(81, 1036, 580, cuadros);
+	agregarCuadro(81, 1057, 580, cuadros);
+	
+	agregarCuadro(82, 611, 602, cuadros);
+	agregarCuadro(82, 656, 602, cuadros);
+	
+	agregarCuadro(83, 1078, 602, cuadros);
+	agregarCuadro(83, 1123, 602, cuadros);
+	agregarCuadro(83, 1147, 602, cuadros);
+	
+	agregarCuadro(84, 700, 623, cuadros);
+	agregarCuadro(84, 722, 623, cuadros);
+	agregarCuadro(84, 745, 623, cuadros);
+	agregarCuadro(84, 767, 623, cuadros);
+	agregarCuadro(84, 790, 623, cuadros);
+	agregarCuadro(84, 812, 623, cuadros);
+	
+	agregarCuadro(85, 879, 623, cuadros);
+	agregarCuadro(85, 901, 623, cuadros);
+	agregarCuadro(85, 946, 623, cuadros);
+	agregarCuadro(85, 968, 623, cuadros);
+	
+	agregarCuadro(86, 1169, 623, cuadros);
+	agregarCuadro(86, 1214, 623, cuadros);
+	agregarCuadro(86, 1235, 623, cuadros);
 }
 
 //Llenar la lista de preguntas con todo lo que tiene el crucigrama.

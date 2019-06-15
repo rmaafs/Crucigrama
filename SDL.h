@@ -123,6 +123,8 @@ class SDL {
 				return S;
 			} else if (keys[SDL_SCANCODE_Q]){
 				return Q;
+			} else if (keys[SDL_SCANCODE_E]){
+				return E;
 			} else if (keys[SDL_SCANCODE_P]){
 				return P;
 			} else if (keys[SDL_SCANCODE_M]){

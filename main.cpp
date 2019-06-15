@@ -72,8 +72,7 @@ bool isNumber(const string&);
 int main(int argc, char *args[]) {
 	ocultarCursor();//Ocultar el cursor que parpadea en consola.
 	SDL sdl;
-	//mostrarInicio(sdl);
-	iniciarJuego(sdl);
+	mostrarInicio(sdl);
     return 0;
 }
 
@@ -140,13 +139,6 @@ void desactivarCuadros(int pregunta, list<Cuadro> &cuadros){
 	        ++it;
 	    }
 	}
-	
-	/*for(auto iter = cuadros.begin(); iter!=cuadros.end(); iter++){
-	    Cuadro c = *iter;
-	    if (c.pregunta == pregunta || c.subpregunta == pregunta){
-	    	
-		}
-	}*/
 }
 
 //Función que le pregunta el nombre al jugador, para guardarlo en el archivo de records.

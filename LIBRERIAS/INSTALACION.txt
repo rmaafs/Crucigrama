@@ -1,0 +1,8 @@
+La siguiente carpeta debe de ir en C:/
+Para instalar SDL en Dev-C, hay tutoriales que ya lo explican.
+
+https://www.google.com/search?q=Instalar+SDL+en+Dev-C&rlz=1C1CHBD_esMX815MX815&oq=Instalar+SDL+en+Dev-C
+
+El SDL que les comparto, ya tiene las librerias dentro que permiten usar
+.png con transparencia, y tambien reproduce sonidos (Revisar la clase SDL.h)
+del proyecto.

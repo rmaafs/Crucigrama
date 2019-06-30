@@ -1,5 +1,5 @@
 # Crucigrama
-Cucigrama
+Juego de Cucigrama para C++ usando SDL.
 
 Para modificar la versión del copilador (En caso de que de error), solución:
 1.- En Dev-C, ir a Tools -> Compiler Options
